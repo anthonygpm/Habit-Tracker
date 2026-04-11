@@ -2,6 +2,7 @@ package dev.anthony.habit_tracker.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -20,6 +21,7 @@ public class HabitRecord {
 
     @ManyToOne
     @JoinColumn(name = "habit_uuid", nullable = false)
+    @JsonBackReference
     private Habit habit;
 
 }

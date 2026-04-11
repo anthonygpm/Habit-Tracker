@@ -25,37 +25,52 @@ public class HabitService {
     }
 
     public Integer getHabitStreak(UUID uuid) {
-        int streak = 0;
+        List<HabitRecord> records = habitRecordRepository.findAllByHabit_Uuid(uuid);
 
-        List<HabitRecord> records = habitRecordRepository.findAllByHabitUuid(uuid);
-
-        if(records == null || records.isEmpty()) {
-            return streak;
+        if (records == null || records.isEmpty()) {
+            return 0;
         }
 
         Set<LocalDate> completedDates = records.stream()
-                .map(HabitRecord :: getCompletedAt)
+                .map(HabitRecord::getCompletedAt)
                 .collect(Collectors.toSet());
 
         LocalDate today = LocalDate.now();
         LocalDate checkDate;
 
-        if(completedDates.contains(today)) {
+        if (completedDates.contains(today)) {
             checkDate = today;
-        }
-        else if (completedDates.contains(today.minusDays(1))) {
+        } else if (completedDates.contains(today.minusDays(1))) {
             checkDate = today.minusDays(1);
-        }
-        else {
-            return streak;
+        } else {
+            return 0;
         }
 
-        while(completedDates.contains(checkDate)) {
+        int streak = 0;
+        while (completedDates.contains(checkDate)) {
             streak++;
             checkDate = checkDate.minusDays(1);
         }
 
         return streak;
+    }
+
+    public Habit checkHabit(UUID uuid) {
+        Habit habit = getHabitByUuid(uuid);
+
+        if (habit == null) {
+            return null;
+        }
+
+        LocalDate today = LocalDate.now();
+
+        if (habitRecordRepository.findByHabit_UuidAndCompletedAt(uuid, today).isEmpty()) {
+            HabitRecord record = new HabitRecord();
+            record.setHabit(habit);
+            habitRecordRepository.save(record);
+        }
+
+        return habit;
     }
 
     public Habit getHabitByUuid(UUID uuid) {
@@ -66,7 +81,7 @@ public class HabitService {
         return habitRepository.save(habit);
     }
 
-    public void deleteHabitByUuid(UUID uuid) {
+    public void deleteHabit(UUID uuid) {
         habitRepository.deleteById(uuid);
     }
 }
